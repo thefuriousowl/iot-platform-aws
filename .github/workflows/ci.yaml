@@ -20,7 +20,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: infracost/actions/setup@v3
-        with: { api-key: ${{ secrets.INFRACOST_API_KEY }} }
+        with:
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
+
       - run: infracost breakdown --path infra/terraform/envs/dev
 
   helm-lint:
