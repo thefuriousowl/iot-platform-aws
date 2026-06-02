@@ -1,0 +1,52 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+
+/// Telemetry readings from IoT sensors
+/// This table will be converted to a TimescaleDB hypertable
+model TelemetryReading {
+  id        String   @id @default(cuid())
+  ts        DateTime @default(now())
+  site      String
+  gateway   String
+  metric    String
+  value     Float?
+  values    Json?    // For multi-value metrics like CEMS
+  unit      String
+  alarm     Boolean  @default(false)
+
+  @@index([ts])
+  @@index([site, gateway])
+  @@index([metric])
+  @@map("telemetry_readings")
+}
+
+/// Active alerts
+model Alert {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  site        String
+  gateway     String
+  metric      String
+  value       Float
+  threshold   Float
+  severity    String   // "warning" | "critical"
+  acknowledged Boolean @default(false)
+  acknowledgedAt DateTime?
+  acknowledgedBy String?
+
+  @@index([createdAt])
+  @@index([site, gateway])
+  @@map("alerts")
+}
