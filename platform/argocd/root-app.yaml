@@ -1,0 +1,18 @@
+# Root "app of apps". Bootstrapping this single Application makes ArgoCD discover and sync
+# every platform component declared under platform/argocd/apps/.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: iot-platform-root
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/USERNAME/iot-platform-aws.git
+    targetRevision: main
+    path: platform/argocd/apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated: { prune: true, selfHeal: true }

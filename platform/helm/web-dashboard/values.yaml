@@ -1,0 +1,14 @@
+image:
+  repository: ghcr.io/USERNAME/iot-web-dashboard
+  tag: latest
+replicaCount: 2
+service:
+  port: 80
+  targetPort: 8080
+ingress:
+  enabled: true
+  host: dashboard.iot.example.com   # behind the ALB
+  tls: true
+resources:
+  requests: { cpu: 50m, memory: 64Mi }
+  limits:   { cpu: 200m, memory: 128Mi }

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IoT Platform — Operations Dashboard (Demo)</title>
+<!--
+  STANDALONE DEMO of the Angular web-dashboard.
+  Open this file in a browser to see the dashboard live — no build, no backend needed.
+  It runs the same simulator logic as apps/sensor-simulator/sim.py (gas/cems/water) in JS,
+  so reviewers can watch live telemetry, a gas-leak alarm fire, and SLO panels update.
+
+  The real app is Angular (see ../src). This single file mirrors its UI for instant demo.
+-->
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Archivo:wght@400;600;800&display=swap');
+
+  :root {
+    --bg: #0a0e14;
+    --panel: #11161f;
+    --panel-2: #161d29;
+    --line: #1f2937;
+    --ink: #e6edf3;
+    --muted: #6b7785;
+    --ok: #2ee6a6;
+    --warn: #ffb454;
+    --crit: #ff5370;
+    --accent: #36a3ff;
+    --grid: rgba(255,255,255,0.03);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(54,163,255,0.08), transparent),
+      var(--bg);
+    color: var(--ink);
+    font-family: 'Archivo', sans-serif;
+    min-height: 100vh;
+    padding: 20px 24px 40px;
+  }
+  /* faint engineering grid backdrop */
+  body::before {
+    content: ""; position: fixed; inset: 0; z-index: -1;
+    background-image: linear-gradient(var(--grid) 1px, transparent 1px),
+                      linear-gradient(90deg, var(--grid) 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  header {
+    display: flex; align-items: baseline; gap: 16px;
+    border-bottom: 1px solid var(--line); padding-bottom: 14px; margin-bottom: 20px;
+  }
+  header h1 {
+    font-size: 18px; font-weight: 800; letter-spacing: 0.5px; text-transform: uppercase;
+  }
+  header .sub { color: var(--muted); font-family: 'Space Mono', monospace; font-size: 12px; }
+  .live-dot {
+    width: 8px; height: 8px; border-radius: 50%; background: var(--ok);
+    box-shadow: 0 0 0 0 rgba(46,230,166,0.6); animation: pulse 1.8s infinite;
+    display: inline-block; margin-right: 6px;
+  }
+  @keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(46,230,166,0.5); }
+    70% { box-shadow: 0 0 0 8px rgba(46,230,166,0); }
+    100% { box-shadow: 0 0 0 0 rgba(46,230,166,0); }
+  }
+
+  .slo-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 20px; }
+  .slo {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px;
+  }
+  .slo .label { font-family:'Space Mono',monospace; font-size: 11px; color: var(--muted); text-transform: uppercase; }
+  .slo .val { font-size: 26px; font-weight: 800; margin-top: 6px; font-family:'Space Mono',monospace; }
+  .slo .val.ok { color: var(--ok); } .slo .val.warn { color: var(--warn); } .slo .val.crit { color: var(--crit); }
+
+  .grid2 { display: grid; grid-template-columns: 1.4fr 1fr; gap: 18px; }
+  .card { background: var(--panel); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; }
+  .card h2 {
+    font-size: 12px; text-transform: uppercase; letter-spacing: 1px; color: var(--muted);
+    padding: 14px 16px; border-bottom: 1px solid var(--line); font-family:'Space Mono',monospace;
+  }
+  .sites { padding: 8px; }
+  .site {
+    display: grid; grid-template-columns: 10px 1fr auto; gap: 12px; align-items: center;
+    padding: 12px 14px; border-radius: 8px; margin: 4px; background: var(--panel-2);
+    transition: background .2s;
+  }
+  .site .stat { width: 10px; height: 10px; border-radius: 50%; }
+  .stat.ok { background: var(--ok); } .stat.warn { background: var(--warn); }
+  .stat.crit { background: var(--crit); animation: pulse 1.2s infinite; }
+  .site .name { font-weight: 600; }
+  .site .meta { font-family:'Space Mono',monospace; font-size: 11px; color: var(--muted); }
+  .site .reading { font-family:'Space Mono',monospace; font-size: 14px; text-align: right; }
+  .site .reading small { color: var(--muted); }
+
+  .alerts { padding: 8px; max-height: 520px; overflow-y: auto; }
+  .alert {
+    border-left: 3px solid var(--warn); background: var(--panel-2);
+    padding: 10px 12px; margin: 6px; border-radius: 6px; animation: slideIn .3s ease;
+  }
+  .alert.crit { border-left-color: var(--crit); }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(8px); } to { opacity: 1; transform: none; } }
+  .alert .top { display: flex; justify-content: space-between; font-family:'Space Mono',monospace; font-size: 11px; }
+  .alert .sev { font-weight: 700; text-transform: uppercase; }
+  .alert .sev.crit { color: var(--crit); } .alert .sev.warn { color: var(--warn); }
+  .alert .time { color: var(--muted); }
+  .alert .msg { margin-top: 4px; font-size: 13px; }
+  .alert button {
+    margin-top: 8px; background: transparent; border: 1px solid var(--line); color: var(--muted);
+    font-family:'Space Mono',monospace; font-size: 10px; padding: 3px 8px; border-radius: 4px; cursor: pointer;
+  }
+  .alert button:hover { border-color: var(--accent); color: var(--accent); }
+  .empty { color: var(--muted); font-size: 12px; padding: 24px; text-align: center; font-family:'Space Mono',monospace; }
+
+  .banner {
+    background: linear-gradient(90deg, rgba(255,83,112,0.18), transparent);
+    border: 1px solid var(--crit); color: var(--crit);
+    padding: 10px 16px; border-radius: 8px; margin-bottom: 18px;
+    font-family:'Space Mono',monospace; font-size: 13px; font-weight: 700;
+    display: none; align-items: center; gap: 10px;
+  }
+  .banner.show { display: flex; animation: pulse-bg 1.5s infinite; }
+  @keyframes pulse-bg { 50% { background: linear-gradient(90deg, rgba(255,83,112,0.30), transparent); } }
+</style>
+</head>
+<body>
+  <header>
+    <h1>⬡ IoT Platform — Operations</h1>
+    <span class="sub"><span class="live-dot"></span>LIVE · demo mode · simulated telemetry</span>
+  </header>
+
+  <div class="banner" id="banner">⚠ GAS LEAK DETECTED — see active alerts</div>
+
+  <div class="slo-row">
+    <div class="slo"><div class="label">Alert latency p99</div><div class="val ok" id="slo-latency">—</div></div>
+    <div class="slo"><div class="label">Ingestion availability</div><div class="val ok" id="slo-avail">—</div></div>
+    <div class="slo"><div class="label">Broker (EMQX)</div><div class="val ok" id="slo-broker">—</div></div>
+    <div class="slo"><div class="label">Active critical alerts</div><div class="val ok" id="slo-crit">0</div></div>
+  </div>
+
+  <div class="grid2">
+    <div class="card">
+      <h2>Sites & Gateways</h2>
+      <div class="sites" id="sites"></div>
+    </div>
+    <div class="card">
+      <h2>Active Alerts</h2>
+      <div class="alerts" id="alerts"><div class="empty">No active alerts — all systems nominal</div></div>
+    </div>
+  </div>
+
+<script>
+/* ---- Simulator logic mirrored from apps/sensor-simulator/sim.py ---- */
+const SITES = [
+  { site: 'plant-a',   gateway: 'gw-1', profile: 'gas-detection',  severity: 'ok' },
+  { site: 'plant-a',   gateway: 'gw-2', profile: 'cems',           severity: 'ok' },
+  { site: 'water-b',   gateway: 'gw-1', profile: 'water-quality',  severity: 'ok' },
+  { site: 'plant-c',   gateway: 'gw-1', profile: 'gas-detection',  severity: 'ok' },
+];
+let alerts = [];
+const gauss = (m, s) => m + (Math.random()*2-1 + Math.random()*2-1 + Math.random()*2-1) * s;
+
+function gen(profile, t) {
+  if (profile === 'gas-detection') {
+    let v = Math.max(0, 5 + 2*Math.sin(t/30) + gauss(0,0.5) + (Math.random()<0.015 ? 40+Math.random()*80 : 0));
+    return { metric:'combustible_gas_ppm', value:+v.toFixed(1), unit:'ppm', alarm: v>50, threshold:50 };
+  }
+  if (profile === 'cems') {
+    return { metric:'NOx', value:+Math.max(0,120+20*Math.sin(t/60)+gauss(0,5)).toFixed(0), unit:'mg/Nm³', alarm:false, threshold:200 };
+  }
+  return { metric:'pH', value:+(7+0.4*Math.sin(t/90)+gauss(0,0.05)).toFixed(2), unit:'', alarm:false, threshold:9 };
+}
+
+let t = 0;
+function tick() {
+  t += 1;
+  SITES.forEach(s => {
+    const r = gen(s.profile, t + s.site.length*7);
+    s.last = r;
+    s.lastSeen = new Date().toISOString();
+    s.online = true;
+    if (r.alarm) {
+      s.severity = 'critical';
+      const id = 'a' + Date.now() + Math.random().toString(36).slice(2,5);
+      alerts.unshift({
+        id, ts:new Date(), site:s.site, gateway:s.gateway, profile:s.profile,
+        severity:'critical', message:`${r.metric} = ${r.value}${r.unit} exceeds threshold ${r.threshold}${r.unit}`,
+        acknowledged:false
+      });
+      alerts = alerts.slice(0, 30);
+    } else if (s.severity === 'critical' && Math.random() < 0.1) {
+      s.severity = 'ok'; // recovers
+    }
+  });
+  render();
+}
+
+function ack(id) { const a = alerts.find(x=>x.id===id); if(a) a.acknowledged=true; render(); }
+
+function render() {
+  // SLO panels (simulated)
+  const latency = +(0.35 + Math.random()*0.4 + (alerts.filter(a=>!a.acknowledged).length>2?0.5:0)).toFixed(2);
+  const avail = +(0.9985 + Math.random()*0.0014).toFixed(4);
+  const lat = document.getElementById('slo-latency');
+  lat.textContent = latency + 's'; lat.className = 'val ' + (latency<1?'ok':'crit');
+  const av = document.getElementById('slo-avail');
+  av.textContent = (avail*100).toFixed(2)+'%'; av.className = 'val ' + (avail>=0.999?'ok':'warn');
+  document.getElementById('slo-broker').textContent = 'UP';
+  const crit = alerts.filter(a=>a.severity==='critical' && !a.acknowledged).length;
+  const cc = document.getElementById('slo-crit');
+  cc.textContent = crit; cc.className = 'val ' + (crit>0?'crit':'ok');
+  document.getElementById('banner').className = 'banner' + (crit>0?' show':'');
+
+  // sites
+  document.getElementById('sites').innerHTML = SITES.map(s => `
+    <div class="site">
+      <span class="stat ${s.severity}"></span>
+      <div>
+        <div class="name">${s.site} / ${s.gateway}</div>
+        <div class="meta">${s.profile} · last seen ${s.lastSeen ? 'now' : '—'}</div>
+      </div>
+      <div class="reading">${s.last ? s.last.value : '—'}<small> ${s.last ? s.last.unit : ''}</small></div>
+    </div>`).join('');
+
+  // alerts
+  const active = alerts.filter(a=>!a.acknowledged);
+  document.getElementById('alerts').innerHTML = active.length ? active.map(a => `
+    <div class="alert ${a.severity}">
+      <div class="top">
+        <span class="sev ${a.severity}">${a.severity}</span>
+        <span class="time">${a.ts.toLocaleTimeString()}</span>
+      </div>
+      <div class="msg"><b>${a.site}/${a.gateway}</b> — ${a.message}</div>
+      <button onclick="ack('${a.id}')">ACKNOWLEDGE</button>
+    </div>`).join('') : '<div class="empty">No active alerts — all systems nominal</div>';
+}
+
+render();
+setInterval(tick, 1000);
+</script>
+</body>
+</html>

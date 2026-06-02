@@ -1,0 +1,19 @@
+# Terraform
+**/.terraform/*
+*.tfstate
+*.tfstate.*
+crash.log
+*.tfvars
+override.tf
+.terraformrc
+terraform.rc
+# Python
+__pycache__/
+*.pyc
+.venv/
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+EXECUTION_BREAKDOWN.md
+PROJECT_PLAN.md

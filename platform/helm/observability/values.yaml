@@ -1,0 +1,11 @@
+# Wraps kube-prometheus-stack; loads alert rules and dashboards from this repo.
+kube-prometheus-stack:
+  grafana:
+    sidecar:
+      dashboards: { enabled: true, label: grafana_dashboard }
+  prometheus:
+    prometheusSpec:
+      ruleSelector:
+        matchLabels: { role: iot-alert-rules }
+# Alert rules live in observability/alerts/ and are loaded as PrometheusRule objects.
+# Dashboards live in observability/dashboards/ as ConfigMaps with the sidecar label.

@@ -1,0 +1,42 @@
+name: ci
+on:
+  pull_request:
+  push: { branches: [main] }
+
+jobs:
+  terraform:
+    runs-on: ubuntu-latest
+    defaults: { run: { working-directory: infra/terraform/envs/dev } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+      - run: terraform fmt -check -recursive ../../..
+      - run: terraform init -backend=false
+      - run: terraform validate
+
+  # Cost visibility on every infra PR (see docs/cost.md)
+  infracost:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: infracost/actions/setup@v3
+        with: { api-key: ${{ secrets.INFRACOST_API_KEY }} }
+      - run: infracost breakdown --path infra/terraform/envs/dev
+
+  helm-lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+      - run: |
+          for c in platform/helm/*/; do helm lint "$c" || true; done
+
+  python:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: pip install -r apps/sensor-simulator/requirements.txt
+      - run: python apps/sensor-simulator/sim.py --profile cems --rate 50 --dry-run &
+             sleep 1; echo "simulator smoke-tested"

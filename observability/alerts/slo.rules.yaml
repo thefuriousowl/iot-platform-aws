@@ -1,0 +1,29 @@
+# Prometheus recording + alerting rules expressing the platform SLOs.
+groups:
+  - name: iot-slo
+    rules:
+      # --- Recording rules: error budget inputs ---
+      - record: job:alert_latency_seconds:p99
+        expr: histogram_quantile(0.99, sum(rate(alert_latency_seconds_bucket[5m])) by (le))
+
+      - record: job:ingestion_availability:ratio_rate5m
+        expr: |
+          sum(rate(ingestion_messages_processed_total[5m]))
+          /
+          sum(rate(ingestion_messages_received_total[5m]))
+
+      # --- Alerting rules ---
+      - alert: GasAlertLatencyHigh
+        expr: job:alert_latency_seconds:p99 > 1
+        for: 1m
+        labels: { severity: critical, domain: safety }
+        annotations:
+          summary: "Gas-alert p99 latency over 1s SLO"
+          runbook: "observability/runbooks/gas-alert-latency.md"
+
+      - alert: IngestionAvailabilityBurn
+        expr: job:ingestion_availability:ratio_rate5m < 0.999
+        for: 5m
+        labels: { severity: warning }
+        annotations:
+          summary: "Ingestion availability below 99.9% SLO"

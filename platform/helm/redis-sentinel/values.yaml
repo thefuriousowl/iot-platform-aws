@@ -1,0 +1,11 @@
+# Redis Sentinel — HA caching + cross-service RPC coordination.
+# Sentinel removes the single point of failure: on primary loss it elects a replica
+# and clients rediscover the new primary automatically.
+architecture: replication
+sentinel:
+  enabled: true
+  quorum: 2
+replica:
+  replicaCount: 2
+master:
+  persistence: { enabled: true, size: 1Gi }

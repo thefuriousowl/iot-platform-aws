@@ -1,0 +1,32 @@
+groups:
+  - name: iot-platform
+    rules:
+      - alert: BrokerDown
+        expr: up{job="emqx"} == 0
+        for: 30s
+        labels: { severity: critical }
+        annotations:
+          summary: "EMQX broker is down — ingestion front door unavailable"
+          runbook: "observability/runbooks/broker-down.md"
+
+      - alert: RedisFailover
+        expr: changes(redis_sentinel_master_status[5m]) > 0
+        for: 0m
+        labels: { severity: info }
+        annotations:
+          summary: "Redis Sentinel promoted a new primary"
+
+      - alert: IngestionLagGrowing
+        expr: ingestion_queue_depth > 1000
+        for: 2m
+        labels: { severity: warning }
+        annotations:
+          summary: "Telemetry arriving faster than it is persisted"
+
+      - alert: SiteOffline
+        expr: time() - max by (site) (last_telemetry_timestamp_seconds) > 120
+        for: 1m
+        labels: { severity: warning }
+        annotations:
+          summary: "Site {{ $labels.site }} stopped reporting telemetry"
+          runbook: "observability/runbooks/site-offline.md"

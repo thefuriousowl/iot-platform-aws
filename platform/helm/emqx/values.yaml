@@ -1,0 +1,14 @@
+# EMQX MQTT broker — ingestion front door.
+replicaCount: 2          # clustered for HA
+service:
+  type: ClusterIP
+listeners:
+  tcp:  { port: 1883 }
+  tls:  { port: 8883, enabled: true }   # field gateways connect over TLS
+auth:
+  mechanism: built_in_database          # per-gateway credentials (managed by operator)
+resources:
+  requests: { cpu: 200m, memory: 256Mi }
+  limits:   { cpu: 500m, memory: 512Mi }
+podDisruptionBudget:
+  minAvailable: 1

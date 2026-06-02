@@ -1,0 +1,29 @@
+{
+  "title": "IoT Platform Overview",
+  "uid": "iot-overview",
+  "schemaVersion": 39,
+  "tags": ["iot", "portfolio"],
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Alert latency p99 (SLO < 1s)",
+      "targets": [{ "expr": "job:alert_latency_seconds:p99" }],
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 }
+    },
+    {
+      "type": "stat",
+      "title": "Ingestion availability (5m)",
+      "targets": [{ "expr": "job:ingestion_availability:ratio_rate5m" }],
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 }
+    },
+    {
+      "type": "timeseries",
+      "title": "Messages received vs processed",
+      "targets": [
+        { "expr": "sum(rate(ingestion_messages_received_total[1m]))", "legendFormat": "received" },
+        { "expr": "sum(rate(ingestion_messages_processed_total[1m]))", "legendFormat": "processed" }
+      ],
+      "gridPos": { "h": 8, "w": 24, "x": 0, "y": 8 }
+    }
+  ]
+}

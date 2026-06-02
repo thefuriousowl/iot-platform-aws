@@ -1,0 +1,10 @@
+# This chart does NOT run a database — the database is managed RDS PostgreSQL.
+# It deploys the connection config/secret and runs the one-time
+# `CREATE EXTENSION IF NOT EXISTS timescaledb;` migration job against RDS.
+rds:
+  endpointFrom:
+    secretName: db-connection      # populated from Terraform output
+hypertables:
+  - table: telemetry
+    timeColumn: ts
+    chunkInterval: "1 day"
