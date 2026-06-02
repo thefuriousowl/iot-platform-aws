@@ -1,4 +1,6 @@
 # Industrial IoT Platform on AWS
+[![CI](https://github.com/thefuriousowl/iot-platform-aws/actions/workflows/ci.yaml/badge.svg)](https://github.com/thefuriousowl/iot-platform-aws/actions/workflows/ci.yaml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
 > A production-shaped, fully reproducible Industrial IoT platform: ingest safety-critical
 > sensor telemetry (emissions, gas detection, water quality), store it as time-series,

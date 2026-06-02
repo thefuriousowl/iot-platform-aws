@@ -25,9 +25,9 @@ module "eks" {
   cluster_name    = var.name
   cluster_version = "1.30"
 
-  vpc_id                   = var.vpc_id
-  subnet_ids               = var.private_subnet_ids
-  enable_irsa              = true # OIDC provider for IRSA
+  vpc_id                         = var.vpc_id
+  subnet_ids                     = var.private_subnet_ids
+  enable_irsa                    = true # OIDC provider for IRSA
   cluster_endpoint_public_access = true
 
   eks_managed_node_groups = {

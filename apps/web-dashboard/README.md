@@ -48,5 +48,3 @@ Field sensors → EMQX → Ingestion service ─┬─ TimescaleDB ──→ Cli
   and synced by ArgoCD ([`platform/argocd/apps/web-dashboard.yaml`](../../platform/argocd/apps/web-dashboard.yaml))
   — the same GitOps flow as every other component, so the frontend is a first-class platform
   citizen, not a bolt-on.
-
-> Replace `USERNAME` in the Helm values and ArgoCD app with your GitHub handle.

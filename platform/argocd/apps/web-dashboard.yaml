@@ -4,7 +4,7 @@ metadata: { name: web-dashboard, namespace: argocd }
 spec:
   project: default
   source:
-    repoURL: https://github.com/USERNAME/iot-platform-aws.git
+    repoURL: https://github.com/thefuriousowl/iot-platform-aws.git
     targetRevision: main
     path: platform/helm/web-dashboard
   destination: { server: https://kubernetes.default.svc, namespace: iot }

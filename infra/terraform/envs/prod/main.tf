@@ -38,7 +38,7 @@ module "eks" {
   private_subnet_ids = module.network.private_app_subnet_ids
   capacity_type      = "ON_DEMAND" # stability over cost in prod
   instance_types     = ["m5.large"]
-  min_size           = 2           # spread across AZs
+  min_size           = 2 # spread across AZs
   max_size           = 6
 }
 
@@ -48,7 +48,7 @@ module "data" {
   vpc_id                = module.network.vpc_id
   data_subnet_ids       = module.network.private_data_subnet_ids
   app_security_group_id = module.eks.node_security_group_id
-  multi_az              = true            # HA database in prod
+  multi_az              = true # HA database in prod
   instance_class        = "db.r6g.large"
 }
 
