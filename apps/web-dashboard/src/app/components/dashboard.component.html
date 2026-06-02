@@ -1,67 +1,44 @@
-<header class="hdr">
-  <h1>⬡ IoT Platform — Operations</h1>
-  <span class="sub"><span class="live-dot"></span>LIVE</span>
-</header>
+    <div class="dashboard">
+      <header>
+        <h1>IoT Platform Dashboard</h1>
+        <span class="status" [class.connected]="connected">
+          {{ connected ? '● Connected' : '○ Disconnected' }}
+        </span>
+      </header>
 
-<div class="banner" *ngIf="criticalCount() > 0">
-  ⚠ {{ criticalCount() }} CRITICAL ALERT(S) — immediate attention required
-</div>
+      <div class="grid">
+        <!-- Live Readings -->
+        <section class="card readings">
+          <h2>Live Readings</h2>
+          <div class="reading-list">
+            @for (reading of readings; track reading.ts) {
+              <div class="reading" [class.alarm]="reading.alarm">
+                <span class="metric">{{ reading.metric }}</span>
+                <span class="value">{{ reading.value | number:'1.2-2' }} {{ reading.unit }}</span>
+                <span class="location">{{ reading.site }} / {{ reading.gateway }}</span>
+                <span class="time">{{ reading.ts | date:'HH:mm:ss' }}</span>
+              </div>
+            } @empty {
+              <p class="empty">Waiting for telemetry data...</p>
+            }
+          </div>
+        </section>
 
-<section class="slo-row" *ngIf="slo() as s">
-  <div class="slo">
-    <div class="label">Alert latency p99</div>
-    <div class="val" [class.ok]="latencyOk()" [class.crit]="!latencyOk()">
-      {{ s.alertLatencyP99Seconds }}s
-    </div>
-  </div>
-  <div class="slo">
-    <div class="label">Ingestion availability</div>
-    <div class="val" [class.ok]="availabilityOk()" [class.warn]="!availabilityOk()">
-      {{ (s.ingestionAvailability * 100) | number:'1.2-2' }}%
-    </div>
-  </div>
-  <div class="slo">
-    <div class="label">Broker (EMQX)</div>
-    <div class="val" [class.ok]="s.brokerUp" [class.crit]="!s.brokerUp">
-      {{ s.brokerUp ? 'UP' : 'DOWN' }}
-    </div>
-  </div>
-  <div class="slo">
-    <div class="label">Active critical</div>
-    <div class="val" [class.ok]="criticalCount() === 0" [class.crit]="criticalCount() > 0">
-      {{ criticalCount() }}
-    </div>
-  </div>
-</section>
-
-<div class="grid2">
-  <div class="card">
-    <h2>Sites &amp; Gateways</h2>
-    <div class="sites">
-      <div class="site" *ngFor="let s of sites()">
-        <span class="stat" [ngClass]="sevClass(s.severity)"></span>
-        <div>
-          <div class="name">{{ s.site }} / {{ s.gateway }}</div>
-          <div class="meta">{{ s.profile }} · {{ s.online ? 'online' : 'offline' }}</div>
-        </div>
+        <!-- Alerts -->
+        <section class="card alerts">
+          <h2>Recent Alerts</h2>
+          <div class="alert-list">
+            @for (alert of alerts; track alert.id) {
+              <div class="alert" [class]="alert.severity">
+                <span class="severity">{{ alert.severity | uppercase }}</span>
+                <span class="metric">{{ alert.metric }}: {{ alert.value | number:'1.2-2' }}</span>
+                <span class="threshold">Threshold: {{ alert.threshold }}</span>
+                <span class="location">{{ alert.site }} / {{ alert.gateway }}</span>
+              </div>
+            } @empty {
+              <p class="empty">No alerts</p>
+            }
+          </div>
+        </section>
       </div>
     </div>
-  </div>
-
-  <div class="card">
-    <h2>Active Alerts</h2>
-    <div class="alerts">
-      <div class="alert" *ngFor="let a of activeAlerts()" [class.crit]="a.severity === 'critical'">
-        <div class="top">
-          <span class="sev" [ngClass]="a.severity">{{ a.severity }}</span>
-          <span class="time">{{ a.ts | date:'HH:mm:ss' }}</span>
-        </div>
-        <div class="msg"><b>{{ a.site }}/{{ a.gateway }}</b> — {{ a.message }}</div>
-        <button (click)="ack(a.id)">ACKNOWLEDGE</button>
-      </div>
-      <div class="empty" *ngIf="activeAlerts().length === 0">
-        No active alerts — all systems nominal
-      </div>
-    </div>
-  </div>
-</div>

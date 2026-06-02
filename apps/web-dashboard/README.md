@@ -1,50 +1,59 @@
-# Web Dashboard (Angular)
+# WebDashboard
 
-An operator-facing real-time dashboard for the platform: site/gateway status, live readings,
-an active-alert feed with acknowledge, and SLO summary tiles.
+This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 20.3.6.
 
-This is deliberately **complementary to Grafana** — Grafana is the deep technical/metrics
-view; this is the at-a-glance operations surface an industrial/municipal client would watch
-on a control-room screen.
+## Development server
 
-## See it now (no build)
-
-Open [`demo/index.html`](demo/index.html) in any browser. It runs the same simulator logic
-as [`apps/sensor-simulator`](../sensor-simulator) in JavaScript, so you get live telemetry, a
-gas-leak alarm firing, SLO tiles updating, and alert acknowledge — with no backend.
-
-> The demo mirrors the real Angular UI in a single self-contained file so reviewers can see
-> it instantly. The production app is the Angular code under [`src/`](src).
-
-## Run the real Angular app
+To start a local development server, run:
 
 ```bash
-npm install
-npm start            # ng serve -> http://localhost:4200
+ng serve
 ```
 
-By default it talks to the Client API at `localhost:3000/api` and the live WebSocket stream
-at `localhost:3001` (see `src/environments/`). Point those at port-forwarded cluster services
-or run the ingestion service locally.
+Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
 
-## Architecture role
+## Code scaffolding
 
-```
-Field sensors → EMQX → Ingestion service ─┬─ TimescaleDB ──→ Client API (REST) ─┐
-                                          └─ live events (WebSocket) ───────────┤
-                                                                                ▼
-                                                                        Web Dashboard (this)
+Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+
+```bash
+ng generate component component-name
 ```
 
-- **REST** (`/api`) for snapshots: sites, active alerts, SLO state.
-- **WebSocket** (`/stream`) for the live push of readings and alert events.
-- Reactive UI built with **Angular signals**.
+For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
 
-## Build & deploy (GitOps)
+```bash
+ng generate --help
+```
 
-- `Dockerfile` is multi-stage: build with Node, serve static files via nginx.
-- `nginx.conf` serves the SPA and proxies `/api` and `/stream` to in-cluster services.
-- Deployed by Helm chart [`platform/helm/web-dashboard`](../../platform/helm/web-dashboard)
-  and synced by ArgoCD ([`platform/argocd/apps/web-dashboard.yaml`](../../platform/argocd/apps/web-dashboard.yaml))
-  — the same GitOps flow as every other component, so the frontend is a first-class platform
-  citizen, not a bolt-on.
+## Building
+
+To build the project run:
+
+```bash
+ng build
+```
+
+This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+
+## Running unit tests
+
+To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
+
+```bash
+ng test
+```
+
+## Running end-to-end tests
+
+For end-to-end (e2e) testing, run:
+
+```bash
+ng e2e
+```
+
+Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
+
+## Additional Resources
+
+For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.

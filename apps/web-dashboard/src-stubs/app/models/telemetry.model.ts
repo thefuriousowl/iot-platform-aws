@@ -43,25 +43,3 @@ export interface SloSnapshot {
   ingestionAvailability: number;    // SLO >= 0.999
   brokerUp: boolean;
 }
-
-export interface TelemetryReading {
-  ts: string;
-  site: string;
-  gateway: string;
-  metric: string;
-  value: number;
-  values?: Record<string, number>;
-  unit: string;
-  alarm: boolean;
-}
-
-export interface Alert {
-  id: string;
-  site: string;
-  gateway: string;
-  metric: string;
-  value: number;
-  threshold: number;
-  severity: 'warning' | 'critical';
-  createdAt: string;
-}

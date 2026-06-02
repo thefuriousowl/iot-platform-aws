@@ -22,14 +22,14 @@ import time
 from datetime import datetime, timezone
 
 try:
-    import paho.mqtt.client as mqtt
+    import paho.mqtt.client as mqtt  # type: ignore[import]
 except ImportError:
     mqtt = None  # --dry-run works without the dependency
 
 
 # --- Per-profile signal generators -------------------------------------------------
 
-def gas_detection(t: float) -> dict:
+def gas_detection(t: float) -> dict[str, object]:
     """Baseline low ppm with a small chance of a leak spike."""
     baseline = 5 + 2 * math.sin(t / 30)
     spike = 0.0
@@ -44,7 +44,7 @@ def gas_detection(t: float) -> dict:
     }
 
 
-def cems(t: float) -> dict:
+def cems(t: float) -> dict[str, object]:
     """Continuous emissions monitoring — multiple stack gases."""
     return {
         "metric": "stack_emissions",
@@ -59,7 +59,7 @@ def cems(t: float) -> dict:
     }
 
 
-def water_quality(t: float) -> dict:
+def water_quality(t: float) -> dict[str, object]:
     return {
         "metric": "water_quality",
         "values": {
@@ -70,12 +70,76 @@ def water_quality(t: float) -> dict:
         },
         "unit": "mixed",
     }
+    
+    
+def confined_space(t: float) -> dict[str, object]:
+    """Confined space monitoring - O2, CO, H2S for worker safety"""
+    
+    # Randomly pick which metric to send (simulates multiple sensors)
+    sensors = ["o2_percent", "co_ppm", "h2s_ppm"]
+    sensor = random.choice(sensors)
+    
+    if sensor == "o2_percent":
+        # Normal 20.9%, danger below 19.5% or above 23.5%
+        baseline = 20.9 + 0.5 * math.sin(t / 45)
+        if random.random() < 0.03: # 3% chance of an O2 hazard event
+            baseline -= random.uniform(1.5, 3.0) # Simulate drop to dangerous levels
+        value = round(max(0, baseline + random.gauss(0, 0.1)), 2)
+        alarm = value < 19.5 or value > 23.5
+        return {
+            "metric": "o2_percent",
+            "value": value,
+            "unit": "%",
+            "alarm": alarm,
+        }
+        
+    elif sensor == "co_ppm":
+        # Normal: 0-5 ppm, warning: 9, critical: 35
+        baseline = 2 + random.gauss(0,1)
+        if random.random() < 0.02: # 2% chance of a CO
+            baseline += random.uniform(30, 60) # Simulate a CO leak
+        value = round(max(0, baseline), 1)
+        return {
+            "metric": "co_ppm",
+            "value": value,
+            "unit": "ppm",
+            "alarm": value >= 9, # Alarm for both warning and critical levels
+        }
 
+    elif sensor == "h2s_ppm":
+        # Normal: 0-5 ppm, warning 9, critical: 15
+        baseline = 1 + random.gauss(0,0.5)
+        if random.random() < 0.02: # 2% chance of an H2S leak
+            baseline += random.uniform(10, 25)
+        value = round(max(0, baseline), 1)
+        return {
+            "metric": "h2s_ppm",
+            "value": value,
+            "unit": "ppm",
+            "alarm": value >= 9, # Alarm for both warning and critical levels
+        }
+        
+        
+def indoor_air(t: float) -> dict[str, object]:
+    """Indoor air quality - CO2 monitoring"""
+    # Normal: 400-1000 ppm, warning 1000, critical 2000
+    baseline = 600 + 200 * math.sin(t/120) + random.gauss(0, 50) # Simulate occupancy patterns
+    if random.random() < 0.03: # 3% chance of a spike (e.g. crowded event)
+        baseline += random.uniform(800, 1500) 
+    value = round(max(400, baseline + random.gauss(0, 30)), 0) # Ensure it doesn't go below outdoor levels
+    return {
+        "metric": "co2_ppm",
+        "value": value,
+        "unit": "ppm",
+        "alarm": value >= 1000, # Alarm for both warning and critical levels
+    }
 
 PROFILES = {
     "gas-detection": gas_detection,
     "cems": cems,
     "water-quality": water_quality,
+    "confined-space": confined_space,
+    "indoor-air": indoor_air,
 }
 
 
@@ -109,7 +173,7 @@ def main() -> None:
         while True:
             t = time.time() - t0
             reading = gen(t)
-            payload = {
+            payload: dict[str, object] = {
                 "ts": datetime.now(timezone.utc).isoformat(),
                 "site": args.site,
                 "gateway": args.gateway,
@@ -119,7 +183,8 @@ def main() -> None:
             if args.dry_run:
                 print(msg)
             else:
-                client.publish(topic, msg, qos=1)
+                if client is not None:
+                    client.publish(topic, msg, qos=1)
             time.sleep(interval)
     except KeyboardInterrupt:
         print("\n[sim] stopped")

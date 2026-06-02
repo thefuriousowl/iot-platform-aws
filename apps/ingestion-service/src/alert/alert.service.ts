@@ -3,6 +3,7 @@ import { Inject, Logger } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { TelemetryPayload } from "../telemetry/telemetry.dto";
 import { MetricsService } from "../metrics/metrics.service";
+import { StreamGateway } from "../stream/stream.gateway";
 
 // Threshold configuration per metric
 const THRESHOLDS: Record<string, { warning: number; critical: number }> = {
@@ -20,6 +21,7 @@ export class AlertService {
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
         private prisma: PrismaService,
         private metrics: MetricsService,
+        private stream: StreamGateway
     ) { }
 
     /**
@@ -77,6 +79,17 @@ export class AlertService {
                 threshold: thresholdValue,
             }
         })
+
+        this.stream.broadcastAlert({
+            id: alert.id,
+            site: payload.site,
+            gateway: payload.gateway,
+            metric: payload.metric,
+            value: payload.value,
+            threshold: threshold.warning, // or threshold.critical
+            severity: severity,
+            createdAt: alert.createdAt.toISOString(),
+        });
 
         // Track alert latency
         const latencySeconds = (Date.now() - startTime) / 1000;

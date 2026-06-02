@@ -9,6 +9,7 @@ import { ConfigModule } from '@nestjs/config';
 import { AlertModule } from './alert/alert.module';
 import { PrometheusModule } from '@willsoto/nestjs-prometheus';
 import { MetricsModule } from './metrics/metrics.module';
+import { StreamModule } from './stream/stream.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
@@ -32,7 +33,8 @@ import { MetricsModule } from './metrics/metrics.module';
     }),
     PrismaModule,
     AlertModule,
-    TelemetryModule
+    TelemetryModule,
+    StreamModule
   ],
   controllers: [AppController],
   providers: [AppService],

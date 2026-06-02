@@ -5,6 +5,7 @@ import { createHash } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { AlertService } from '../alert/alert.service';
 import { MetricsService } from '../metrics/metrics.service';
+import { StreamGateway } from '../stream/stream.gateway';
 
 @Injectable()
 export class TelemetryService {
@@ -15,6 +16,7 @@ export class TelemetryService {
         private prisma: PrismaService,
         private alertService: AlertService,
         private metrics: MetricsService,
+        private stream: StreamGateway
     ) { }
 
     /**
@@ -71,6 +73,17 @@ export class TelemetryService {
                 unit: payload.unit,
                 alarm: payload.alarm ?? false,
             },
+        });
+
+        // Broadcast to WebSocket clients
+        this.stream.broadcastTelemetry({
+            ts: payload.ts,
+            site: payload.site,
+            gateway: payload.gateway,
+            metric: payload.metric,
+            value: payload.value,
+            unit: payload.unit,
+            alarm: payload.alarm,
         });
 
         // Track processed message

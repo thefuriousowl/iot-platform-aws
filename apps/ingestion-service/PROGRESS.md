@@ -145,9 +145,10 @@ python sim.py --profile gas-detection --rate 1
 
 - [x] Add Prometheus metrics (`/metrics` endpoint)
 - [x] Create Dockerfile for containerization
-- [ ] Add WebSocket endpoint for live streaming
+- [x] Add WebSocket endpoint for live streaming
 - [ ] Add REST API endpoints for querying telemetry/alerts
 - [ ] Unit tests for threshold evaluation logic
+- [ ] Fix web-dashboard Dockerfile (run `npm install` to sync lockfile)
 
 ---
 
@@ -162,4 +163,24 @@ python sim.py --profile gas-detection --rate 1
 
 ---
 
-*Last updated: 2026-06-02 18:00*
+### Session: 2026-06-02 (Continued)
+
+#### WebSocket Streaming Added
+
+- **StreamGateway** - Socket.IO gateway broadcasting telemetry and alerts
+- **StreamModule** - Global module so all services can inject StreamGateway
+- **Real-time flow**: Simulator → MQTT → TelemetryService → StreamGateway → Angular Dashboard
+
+#### Angular Dashboard Connected
+
+- **TelemetryService** - Socket.IO client connecting to backend
+- **DashboardComponent** - Displays live telemetry readings and alerts
+- **Alert cooldown** - 5-minute cooldown per metric prevents alert spam
+
+#### Additional Lessons Learned
+
+7. **Socket.IO namespaces** - Avoid custom namespaces; connect to root for simplicity
+8. **npm vs pnpm lockfiles** - Don't mix package managers; Angular uses npm
+9. **IoAdapter required** - NestJS needs `app.useWebSocketAdapter(new IoAdapter(app))` for Socket.IO
+
+*Last updated: 2026-06-02 22:00*
