@@ -4,6 +4,7 @@ import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 import { createHash } from 'crypto';
 import { PrismaService } from '../prisma/prisma.service';
 import { AlertService } from '../alert/alert.service';
+import { MetricsService } from '../metrics/metrics.service';
 
 @Injectable()
 export class TelemetryService {
@@ -13,6 +14,7 @@ export class TelemetryService {
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
         private prisma: PrismaService,
         private alertService: AlertService,
+        private metrics: MetricsService,
     ) { }
 
     /**
@@ -41,11 +43,15 @@ export class TelemetryService {
 
 
     async handleTelemetry(topic: string, payload: TelemetryPayload): Promise<void> {
+        // Track received message
+        this.metrics.messagesReceived.inc({
+            site: payload.site,
+            gateway: payload.gateway,
+            metric: payload.metric,
+        });
 
         // Deduplication check
-        if (await this.isDuplicate(payload)) {
-            return; // Skip duplicate
-        }
+        if (await this.isDuplicate(payload)) return; // Skip duplicate
 
         this.logger.log(`[${topic}] ${payload.metric} = ${payload.value ?? JSON.stringify(payload.values)}`);
 
@@ -66,8 +72,13 @@ export class TelemetryService {
                 alarm: payload.alarm ?? false,
             },
         });
-        this.logger.debug(`Saved telemetry to database for ${payload.site}/${payload.gateway} - ${payload.metric}`);
 
+        // Track processed message
+        this.metrics.messagesProcessed.inc({
+            site: payload.site,
+            gateway: payload.gateway,
+            metric: payload.metric,
+        });
         // Evaluate thresholds and create alerts
         await this.alertService.evaluateThresholds(payload);
         // TODO: Evaluate thresholds

@@ -2,6 +2,7 @@ import { CACHE_MANAGER, Cache } from "@nestjs/cache-manager";
 import { Inject, Logger } from "@nestjs/common";
 import { PrismaService } from "../prisma/prisma.service";
 import { TelemetryPayload } from "../telemetry/telemetry.dto";
+import { MetricsService } from "../metrics/metrics.service";
 
 // Threshold configuration per metric
 const THRESHOLDS: Record<string, { warning: number; critical: number }> = {
@@ -18,7 +19,8 @@ export class AlertService {
     constructor(
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
         private prisma: PrismaService,
-    ) {}
+        private metrics: MetricsService,
+    ) { }
 
     /**
      * Generate a unique key for alert deduplication
@@ -61,6 +63,9 @@ export class AlertService {
             return; // Alert already active, skip creating a new one
         }
 
+        // Start timing for latency metrics
+        const startTime = Date.now();
+
         // Create new alert
         const alert = await this.prisma.alert.create({
             data: {
@@ -72,6 +77,20 @@ export class AlertService {
                 threshold: thresholdValue,
             }
         })
+
+        // Track alert latency
+        const latencySeconds = (Date.now() - startTime) / 1000;
+        this.metrics.alertLatency.observe(
+            { site: payload.site, gateway: payload.gateway, severity },
+            latencySeconds,
+        );
+
+        // Track alert created
+        this.metrics.alertsCreated.inc({
+            site: payload.site,
+            gateway: payload.gateway,
+            severity,
+        });
 
 
         // Set cooldown (5 min) to prevent alert spam

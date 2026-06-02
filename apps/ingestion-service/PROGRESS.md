@@ -11,7 +11,8 @@ A fully functional **NestJS ingestion service** that:
 3. **Persists to TimescaleDB** - Stores time-series telemetry data using Prisma ORM
 4. **Evaluates thresholds** - Creates alerts when sensor values exceed defined limits
 5. **Alert cooldown** - Prevents alert spam with 5-minute cooldown per metric
-
+6. **Exposes Prometheus metrics** - `/metrics` endpoint for observability
+7. **Containerized** - Multi-stage Dockerfile for production deployment
 ---
 
 ### Architecture
@@ -142,8 +143,8 @@ python sim.py --profile gas-detection --rate 1
 
 ### What's Next (TODO)
 
-- [ ] Add Prometheus metrics (`/metrics` endpoint)
-- [ ] Create Dockerfile for containerization
+- [x] Add Prometheus metrics (`/metrics` endpoint)
+- [x] Create Dockerfile for containerization
 - [ ] Add WebSocket endpoint for live streaming
 - [ ] Add REST API endpoints for querying telemetry/alerts
 - [ ] Unit tests for threshold evaluation logic
@@ -156,7 +157,9 @@ python sim.py --profile gas-detection --rate 1
 2. **NestJS Hybrid App** can run HTTP + MQTT simultaneously
 3. **Redis TTL** is great for deduplication and alert cooldown
 4. **MQTT wildcards** (`+`) work with NestJS `@MessagePattern`
+5. **pnpm 10+** supply-chain policy blocks new packages - use pnpm@9 in Docker
+6. **NestJS build** outputs to `dist/src/` not `dist/` directly
 
 ---
 
-*Last updated: 2026-06-02 15:00*
+*Last updated: 2026-06-02 18:00*

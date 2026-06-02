@@ -7,9 +7,17 @@ import { redisStore } from 'cache-manager-redis-yet';
 import { PrismaModule } from './prisma/prisma.module';
 import { ConfigModule } from '@nestjs/config';
 import { AlertModule } from './alert/alert.module';
+import { PrometheusModule } from '@willsoto/nestjs-prometheus';
+import { MetricsModule } from './metrics/metrics.module';
 @Module({
   imports: [
     ConfigModule.forRoot(),
+    PrometheusModule.register({
+      defaultLabels: {
+        app: 'ingestion-service',
+      },
+    }),
+    MetricsModule,
     CacheModule.registerAsync({
       isGlobal: true,
       useFactory: async () => ({

@@ -15,6 +15,7 @@ __pycache__/
 .DS_Store
 .idea/
 .vscode/
+apps/ingestion-service/PROGRESS.md
 apps/sensor-simulator/venv
 EXECUTION_BREAKDOWN.md
 PROJECT_PLAN.md
