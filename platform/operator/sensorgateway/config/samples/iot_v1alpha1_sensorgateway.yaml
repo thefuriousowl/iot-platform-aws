@@ -1,10 +1,9 @@
-apiVersion: iot.unnop.dev/v1alpha1
+apiVersion: iot.iot.example.com/v1alpha1
 kind: SensorGateway
 metadata:
-  name: plant-a-stack-3
-  namespace: iot
+  name: plant-a-gateway
 spec:
   site: plant-a
-  protocol: modbus-tcp
+  protocol: mqtt
   sampleIntervalSeconds: 5
   alertProfile: gas-detection
