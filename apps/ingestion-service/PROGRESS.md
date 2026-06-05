@@ -146,9 +146,9 @@ python sim.py --profile gas-detection --rate 1
 - [x] Add Prometheus metrics (`/metrics` endpoint)
 - [x] Create Dockerfile for containerization
 - [x] Add WebSocket endpoint for live streaming
-- [ ] Add REST API endpoints for querying telemetry/alerts
-- [ ] Unit tests for threshold evaluation logic
-- [ ] Fix web-dashboard Dockerfile (run `npm install` to sync lockfile)
+- [x] Add REST API endpoints for querying telemetry/alerts
+- [x] Unit tests for threshold evaluation logic
+- [x] Fix web-dashboard Dockerfile (run `npm install` to sync lockfile)
 
 ---
 
@@ -183,4 +183,27 @@ python sim.py --profile gas-detection --rate 1
 8. **npm vs pnpm lockfiles** - Don't mix package managers; Angular uses npm
 9. **IoAdapter required** - NestJS needs `app.useWebSocketAdapter(new IoAdapter(app))` for Socket.IO
 
-*Last updated: 2026-06-02 22:00*
+### Session: 2026-06-05
+
+#### REST API Endpoints Added
+
+- `GET /api/telemetry` - Query telemetry with filters (site, gateway, metric, date range, limit)
+- `GET /api/telemetry/latest` - Latest reading per metric
+- `GET /api/alerts` - Query alerts with severity and date filtering
+- `GET /api/alerts/stats` - Alert counts by severity (warning, critical, total)
+
+#### Unit Tests Added
+
+- **AlertService.spec.ts** - 8 unit tests for threshold evaluation logic
+  - Below warning threshold → no alert
+  - Warning/Critical thresholds trigger correctly
+  - Cooldown prevents duplicate alerts
+  - Metrics tracking works
+  - Unknown metrics gracefully skipped
+
+#### New Simulator Profiles
+
+- `confined-space` - O2%, CO, H2S for worker safety monitoring
+- `indoor-air` - CO2 for indoor air quality
+
+*Last updated: 2026-06-05*

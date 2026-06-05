@@ -1,0 +1,37 @@
+groups:
+  - name: iot-platform
+    rules:
+      # High duplicate rate (>10%)
+      - alert: HighDuplicateRate
+        expr: |
+          sum(rate(ingestion_duplicates_total[5m]))
+          / sum(rate(ingestion_messages_received_total[5m]))
+          > 0.1
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High duplicate message rate"
+          description: "Duplicate rate is {{ $value | humanizePercentage }}"
+
+      # No messages received for 2 minutes
+      - alert: NoMessagesReceived
+        expr: |
+          sum(rate(ingestion_messages_received_total[2m])) == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "No telemetry messages received"
+          description: "No messages for 2+ minutes"
+
+      # Too many alerts (>10/min)
+      - alert: AlertStorm
+        expr: |
+          sum(rate(alerts_created_total[1m])) * 60 > 10
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Alert storm detected"
+          description: "{{ $value | printf \"%.0f\" }} alerts/min"

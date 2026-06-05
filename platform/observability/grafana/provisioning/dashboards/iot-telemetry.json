@@ -1,0 +1,119 @@
+{
+    "id": null,
+    "uid": "iot-telemetry",
+    "title": "IoT Platform - Telemetry & Alerts",
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "refresh": "5s",
+    "panels": [
+        {
+            "id": 1,
+            "title": "Telemetry Messages Received",
+            "type": "stat",
+            "gridPos": {
+                "x": 0,
+                "y": 0,
+                "w": 6,
+                "h": 4
+            },
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
+            "targets": [
+                {
+                    "expr": "sum(ingestion_messages_received_total)",
+                    "legendFormat": "Total",
+                    "refId": "A"
+                }
+            ]
+        },
+        {
+            "id": 2,
+            "title": "Alerts Created",
+            "type": "stat",
+            "gridPos": {
+                "x": 6,
+                "y": 0,
+                "w": 6,
+                "h": 4
+            },
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
+            "targets": [
+                {
+                    "expr": "sum(alerts_created_total)",
+                    "legendFormat": "Total",
+                    "refId": "A"
+                }
+            ],
+            "fieldConfig": {
+                "defaults": {
+                    "thresholds": {
+                        "mode": "absolute",
+                        "steps": [
+                            {
+                                "color": "green",
+                                "value": null
+                            },
+                            {
+                                "color": "yellow",
+                                "value": 10
+                            },
+                            {
+                                "color": "red",
+                                "value": 50
+                            }
+                        ]
+                    }
+                }
+            }
+        },
+        {
+            "id": 3,
+            "title": "Messages Rate",
+            "type": "timeseries",
+            "gridPos": {
+                "x": 0,
+                "y": 4,
+                "w": 12,
+                "h": 8
+            },
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
+            "targets": [
+                {
+                    "expr": "rate(ingestion_messages_received_total[1m]) * 60",
+                    "legendFormat": "{{site}}/{{gateway}}",
+                    "refId": "A"
+                }
+            ]
+        },
+        {
+            "id": 4,
+            "title": "Alerts by Severity",
+            "type": "piechart",
+            "gridPos": {
+                "x": 12,
+                "y": 4,
+                "w": 6,
+                "h": 8
+            },
+            "datasource": {
+                "type": "prometheus",
+                "uid": "prometheus"
+            },
+            "targets": [
+                {
+                    "expr": "sum by (severity) (alerts_created_total)",
+                    "legendFormat": "{{severity}}",
+                    "refId": "A"
+                }
+            ]
+        }
+    ]
+}
