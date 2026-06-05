@@ -56,7 +56,8 @@ resource "aws_db_instance" "this" {
   deletion_protection     = false # true in real prod
   skip_final_snapshot     = true  # false in real prod
   apply_immediately       = true
-
+  username                = "iotadmin"
+  password                = "TempPass123Dev" # Temp password. Use secret manager on prod 
   # TimescaleDB enabled via parameter group + post-create `CREATE EXTENSION`.
   tags = { Name = "${var.name}-timescale" }
 }
@@ -80,6 +81,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "cold" {
   rule {
     id     = "age-telemetry"
     status = "Enabled"
+
+    filter {}
     transition {
       days          = 30
       storage_class = "STANDARD_IA"

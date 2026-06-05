@@ -13,6 +13,27 @@ reproducible, version-controlled, and documented.
 
 ---
 
+## ⚡ Quick Demo (30 seconds, no setup)
+
+**Option 1: Static dashboard** — just open in browser:
+```bash
+open apps/web-dashboard/demo/index.html
+```
+
+**Option 2: Docker** — run the Angular dashboard:
+```bash
+docker run -p 8080:8080 ghcr.io/thefuriousowl/iot-web-dashboard:latest
+# Open http://localhost:8080
+```
+
+> These demos show the operations dashboard UI. For full data flow with live telemetry,
+> see [Local Development](#local-development-no-aws-required) below.
+
+---
+
+
+
+
 ## 👋 Hiring? Start with the layer that matches the role
 
 | If you're hiring for…   | Read this                                                                 | What it shows |
@@ -161,8 +182,8 @@ docs/                 # Architecture + per-role deep dives
 - [x] REST API for historical queries
 - [x] WebSocket streaming for live data
 - [x] SensorGateway Kubernetes operator (Kubebuilder, Go)
-- [ ] Infracost gate in CI
-- [ ] Chaos test: kill Redis primary, assert failover < 10s
+- [x] Infracost gate in CI
+- [x] Chaos test: kill Redis primary, assert failover < 10s
 
 ---
 
