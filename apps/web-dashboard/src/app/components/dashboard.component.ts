@@ -1,5 +1,5 @@
 import { Component, OnDestroy, OnInit, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, KeyValuePipe } from '@angular/common';
 import { TelemetryService } from '../services/telemetry.service';
 import { Alert, Severity, TelemetryReading } from '../models/telemetry.model';
 import { Subscription } from 'rxjs';
@@ -16,7 +16,7 @@ import { Subscription } from 'rxjs';
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, KeyValuePipe],
   templateUrl: './dashboard.component.html',
   styleUrls: ['./dashboard.component.scss'],
 })
@@ -49,6 +49,15 @@ export class DashboardComponent implements OnInit, OnDestroy {
         this.alerts = [alert, ...this.alerts.slice(0, 9)];
       })
     );
+
+  // Fetch existing alerts on load
+  this.telemetryService.fetchRecentAlerts().subscribe({
+    next: (alerts) => {
+      this.alerts = alerts.slice(0, 10);
+    },
+    error: (err) => console.error('Failed to fetch alerts:', err)
+  });
+
   }
 
   ngOnDestroy(): void {

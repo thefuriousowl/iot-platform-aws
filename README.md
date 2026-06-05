@@ -15,7 +15,7 @@ reproducible, version-controlled, and documented.
 
 ## ⚡ Quick Demo (30 seconds, no setup)
 
-**Option 1: Static dashboard** — just open in browser:
+**Option 1: Static dashboard (mock data)** — just open in browser:
 ```bash
 open apps/web-dashboard/demo/index.html
 ```
@@ -139,6 +139,25 @@ What you'll see:
 - Grafana dashboard with message rates and alerts
 - Alert rules firing on thresholds
 
+
+---
+## 🚀 Full AWS Deployment
+
+### Prerequisites
+- AWS CLI configured with credentials
+- Terraform >= 1.7
+- kubectl
+- helm
+
+### Step 1: Deploy Infrastructure
+
+```bash
+cd infra/terraform/envs/dev
+terraform init
+
+# First apply: Create AWS infrastructure (VPC, EKS, RDS, S3)
+terraform apply -target=module.network -target=module.eks -target=module.data -target=module.iam
+```
 
 ---
 

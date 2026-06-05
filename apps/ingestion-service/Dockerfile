@@ -41,6 +41,8 @@ WORKDIR /app
 
 RUN corepack enable && corepack prepare pnpm@9 --activate
 
+# Download AWS RDS CA bundle
+RUN wget -O /app/rds-ca-bundle.pem https://truststore.pki.rds.amazonaws.com/global/global-bundle.pem
 
 # Create non-root user for security
 RUN addgroup -g 1001 -S nodejs && \

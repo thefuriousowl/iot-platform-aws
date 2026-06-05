@@ -49,3 +49,7 @@ output "cluster_endpoint" { value = module.eks.cluster_endpoint }
 output "oidc_provider_arn" { value = module.eks.oidc_provider_arn }
 output "oidc_provider_url" { value = replace(module.eks.cluster_oidc_issuer_url, "https://", "") }
 output "node_security_group_id" { value = module.eks.node_security_group_id }
+output "lbc_role_arn" { value = aws_iam_role.lbc.arn }
+output "cluster_certificate_authority_data" { 
+  value = module.eks.cluster_certificate_authority_data 
+}

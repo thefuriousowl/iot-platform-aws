@@ -1,20 +1,22 @@
-import { Injectable } from "@angular/core";
+import { inject, Injectable } from "@angular/core";
 import { io, Socket } from "socket.io-client";
 import { Alert, TelemetryReading } from "../models/telemetry.model";
-import { BehaviorSubject, Observable, Subject } from "rxjs";
+import { BehaviorSubject, Observable, Subject, map } from "rxjs";
 import { environment } from "../../environments/environment";
+import { HttpClient } from "@angular/common/http";
 
 @Injectable({
   providedIn: 'root'
 })
 export class TelemetryService {
+  private http = inject(HttpClient);
   private socket: Socket;
   private telemetry$ = new Subject<TelemetryReading>();
   private alerts$ = new Subject<Alert>();
   private connected$ = new BehaviorSubject<boolean>(false);
   constructor() {
-    console.log('Connecting to:', environment.apiBaseUrl);
-    this.socket = io(environment.apiBaseUrl, {
+    console.log('Connecting to:', environment.wsBase);
+    this.socket = io(environment.wsBase, {
       transports: ['websocket', 'polling'], // Force WebSocket transport
     });
 
@@ -55,5 +57,11 @@ export class TelemetryService {
   getAlertStream(): Observable<Alert> {
     return this.alerts$.asObservable();
   }
+
+  // Fetch recent alerts from API
+fetchRecentAlerts(): Observable<Alert[]> {
+  return this.http.get<{ count: number; data: Alert[] }>(`${environment.apiBaseUrl}/alerts?limit=10`)
+    .pipe(map(response => response.data));
+}
 
 }

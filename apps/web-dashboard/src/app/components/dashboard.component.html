@@ -1,44 +1,58 @@
-    <div class="dashboard">
-      <header>
-        <h1>IoT Platform Dashboard</h1>
-        <span class="status" [class.connected]="connected">
-          {{ connected ? '● Connected' : '○ Disconnected' }}
-        </span>
-      </header>
+<div class="dashboard">
+  <header>
+    <h1>IoT Platform Dashboard</h1>
+    <span class="status" [class.connected]="connected">
+      {{ connected ? '● Connected' : '○ Disconnected' }}
+    </span>
+  </header>
 
-      <div class="grid">
-        <!-- Live Readings -->
-        <section class="card readings">
-          <h2>Live Readings</h2>
-          <div class="reading-list">
-            @for (reading of readings; track reading.ts) {
-              <div class="reading" [class.alarm]="reading.alarm">
-                <span class="metric">{{ reading.metric }}</span>
-                <span class="value">{{ reading.value | number:'1.2-2' }} {{ reading.unit }}</span>
-                <span class="location">{{ reading.site }} / {{ reading.gateway }}</span>
-                <span class="time">{{ reading.ts | date:'HH:mm:ss' }}</span>
-              </div>
-            } @empty {
-              <p class="empty">Waiting for telemetry data...</p>
-            }
-          </div>
-        </section>
+  <div class="grid">
+    <!-- Live Readings -->
+    <section class="card readings">
+      <h2>Live Readings</h2>
+      <div class="reading-list">
+        @for (reading of readings; track reading.ts) {
+        <div class="reading" [class.alarm]="reading.alarm">
+          <span class="metric">{{ reading.metric }}</span>
+          <span class="value">
+            @if (reading.value !== undefined) {
+            {{ reading.value }} {{ reading.unit }}
+            } @else if (reading.values) {
+            @for (item of reading.values | keyvalue; track item.key; let i = $index) {
+            @if (i < 2) { <span class="nested-value">{{ item.key }}: {{ item.value }}</span>
+          @if (i === 0) { <span class="separator">|</span> }
+          }
+          }
+          @if ((reading.values | keyvalue).length > 2) {
+          <span class="more">+{{ (reading.values | keyvalue).length - 2 }}</span>
+          }
+          }
+          </span>
 
-        <!-- Alerts -->
-        <section class="card alerts">
-          <h2>Recent Alerts</h2>
-          <div class="alert-list">
-            @for (alert of alerts; track alert.id) {
-              <div class="alert" [class]="alert.severity">
-                <span class="severity">{{ alert.severity | uppercase }}</span>
-                <span class="metric">{{ alert.metric }}: {{ alert.value | number:'1.2-2' }}</span>
-                <span class="threshold">Threshold: {{ alert.threshold }}</span>
-                <span class="location">{{ alert.site }} / {{ alert.gateway }}</span>
-              </div>
-            } @empty {
-              <p class="empty">No alerts</p>
-            }
-          </div>
-        </section>
+          <span class="location">{{ reading.site }} / {{ reading.gateway }}</span>
+          <span class="time">{{ reading.ts | date:'HH:mm:ss' }}</span>
+        </div>
+        } @empty {
+        <p class="empty">Waiting for telemetry data...</p>
+        }
       </div>
-    </div>
+    </section>
+
+    <!-- Alerts -->
+    <section class="card alerts">
+      <h2>Recent Alerts</h2>
+      <div class="alert-list">
+        @for (alert of alerts; track alert.id) {
+        <div class="alert" [class]="alert.severity">
+          <span class="severity">{{ alert.severity | uppercase }}</span>
+          <span class="metric">{{ alert.metric }}: {{ alert.value | number:'1.2-2' }}</span>
+          <span class="threshold">Threshold: {{ alert.threshold }}</span>
+          <span class="location">{{ alert.site }} / {{ alert.gateway }}</span>
+        </div>
+        } @empty {
+        <p class="empty">No alerts</p>
+        }
+      </div>
+    </section>
+  </div>
+</div>

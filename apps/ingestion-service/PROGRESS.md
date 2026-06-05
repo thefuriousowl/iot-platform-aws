@@ -207,3 +207,36 @@ python sim.py --profile gas-detection --rate 1
 - `indoor-air` - CO2 for indoor air quality
 
 *Last updated: 2026-06-05*
+
+
+#### Phase 5 - Observability Stack
+
+- **Docker Compose** - Full local dev stack (MQTT, Redis, TimescaleDB, Prometheus, Grafana)
+- **Prometheus scraping** - ingestion-service metrics at :3000/metrics
+- **Grafana Dashboard** - Auto-provisioned with 4 panels:
+  - Telemetry Messages Received (stat)
+  - Alerts Created (stat)
+  - Messages Rate (timeseries)
+  - Alerts by Severity (piechart)
+- **Alerting Rules** - 3 SLO-based alerts:
+  - HighDuplicateRate (>10% duplicates)
+  - NoMessagesReceived (2+ min silence)
+  - AlertStorm (>10 alerts/min)
+
+#### Files Created
+platform/observability/
+├── prometheus/
+│   ├── prometheus.yaml    # Scrape config
+│   └── alerts.yaml        # Alerting rules
+└── grafana/
+└── provisioning/
+├── datasources/prometheus.yaml
+└── dashboards/
+├── dashboards.yaml
+└── iot-telemetry.json
+
+
+#### Lesson Learned
+
+10. **Grafana v13 datasource format** - Use `{"type": "prometheus", "uid": "prometheus"}` not string
+11. **docker compose restart vs recreate** - Volume mounts need container recreate, not just restart

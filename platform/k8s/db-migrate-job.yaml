@@ -1,0 +1,17 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: db-migrate
+  namespace: iot
+spec:
+  ttlSecondsAfterFinished: 300
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: migrate
+        image: ghcr.io/thefuriousowl/iot-ingestion-service:latest
+        command: ["sh", "-c"]
+        args:
+        - |
+          npx prisma db push --url "postgresql://iotadmin:TempPass123Dev@iot-dev-timescale.cbs6g4ccs1gt.eu-west-1.rds.amazonaws.com:5432/iot_telemetry?schema=public&sslmode=require" --accept-data-loss

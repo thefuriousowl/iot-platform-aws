@@ -1,0 +1,107 @@
+# Gas Detection Simulator
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sim-gas-detection
+  namespace: iot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sim-gas-detection
+  template:
+    metadata:
+      labels:
+        app: sim-gas-detection
+    spec:
+      containers:
+      - name: simulator
+        image: ghcr.io/thefuriousowl/iot-sensor-simulator:latest
+        args:
+        - "--profile"
+        - "gas-detection"
+        - "--broker"
+        - "mosquitto.iot.svc.cluster.local"
+        - "--rate"
+        - "2"
+        - "--site"
+        - "plant-a"
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 50m
+            memory: 64Mi
+---
+# CEMS Simulator
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sim-cems
+  namespace: iot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sim-cems
+  template:
+    metadata:
+      labels:
+        app: sim-cems
+    spec:
+      containers:
+      - name: simulator
+        image: ghcr.io/thefuriousowl/iot-sensor-simulator:latest
+        args:
+        - "--profile"
+        - "cems"
+        - "--broker"
+        - "mosquitto.iot.svc.cluster.local"
+        - "--rate"
+        - "1"
+        - "--site"
+        - "plant-b"
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 50m
+            memory: 64Mi
+---
+# Water Quality Simulator  
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sim-water-quality
+  namespace: iot
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sim-water-quality
+  template:
+    metadata:
+      labels:
+        app: sim-water-quality
+    spec:
+      containers:
+      - name: simulator
+        image: ghcr.io/thefuriousowl/iot-sensor-simulator:latest
+        args:
+        - "--profile"
+        - "water-quality"
+        - "--broker"
+        - "mosquitto.iot.svc.cluster.local"
+        - "--rate"
+        - "0.5"
+        - "--site"
+        - "water-treatment"
+        resources:
+          requests:
+            cpu: 10m
+            memory: 32Mi
+          limits:
+            cpu: 50m
+            memory: 64Mi

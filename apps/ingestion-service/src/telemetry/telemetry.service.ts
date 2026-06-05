@@ -82,6 +82,7 @@ export class TelemetryService {
             gateway: payload.gateway,
             metric: payload.metric,
             value: payload.value,
+            values: payload.values,
             unit: payload.unit,
             alarm: payload.alarm,
         });
