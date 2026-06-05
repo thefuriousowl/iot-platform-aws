@@ -90,6 +90,37 @@ python sim.py --profile gas-detection --rate 5
 
 ---
 
+## Local Development (No AWS Required)
+
+Run the entire platform locally with Docker Compose:
+
+```bash
+# 1. Start infrastructure (MQTT, Redis, TimescaleDB, Prometheus, Grafana)
+docker compose up -d
+
+# 2. Start ingestion service
+cd apps/ingestion-service
+pnpm install && pnpm prisma migrate dev && pnpm start:dev
+
+# 3. Start sensor simulator
+cd apps/sensor-simulator
+python sim.py --profile gas-detection --rate 1
+
+# 4. View dashboards
+open http://localhost:3001  # Grafana (admin/admin)
+open http://localhost:9090  # Prometheus
+
+```
+What you'll see:
+
+- Real-time telemetry flowing through MQTT → NestJS → TimescaleDB
+- Prometheus metrics at :3000/metrics
+- Grafana dashboard with message rates and alerts
+- Alert rules firing on thresholds
+
+
+---
+
 ## Design decisions (the important part)
 
 This project is deliberately opinionated. Each major choice is documented with the
@@ -106,7 +137,6 @@ This project is deliberately opinionated. Each major choice is documented with t
 
 ## Repo layout
 
-```
 infra/terraform/      # Cloud layer — VPC, EKS, RDS, S3, IAM (modules + dev/prod envs)
 platform/             # Platform layer — ArgoCD, Helm charts, Kubernetes operator
 apps/                 # Sensor simulator + ingestion service + Angular web dashboard
@@ -125,7 +155,12 @@ docs/                 # Architecture + per-role deep dives
 - [x] SensorGateway operator scaffold
 - [x] Angular operations dashboard (+ standalone demo)
 - [x] SLO + alert rules + runbooks
-- [ ] Distributed tracing wired end-to-end (OpenTelemetry → Tempo)
+- [x] Distributed tracing wired end-to-end (OpenTelemetry → Tempo)
+- [x] NestJS ingestion service (MQTT, Redis dedup, TimescaleDB, alerts)
+- [x] Prometheus + Grafana observability stack
+- [x] REST API for historical queries
+- [x] WebSocket streaming for live data
+- [x] SensorGateway Kubernetes operator (Kubebuilder, Go)
 - [ ] Infracost gate in CI
 - [ ] Chaos test: kill Redis primary, assert failover < 10s
 
